@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 import sys
@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
     QHeaderView,
     QTableWidget,
     QTableWidgetItem,
+    QTextBrowser,
     QVBoxLayout,
 )
 from qfluentwidgets import (
@@ -303,26 +304,56 @@ class StudentsPage(QFrame):
         )
 
 
-class AboutPage(QFrame):
+class ManualPage(QFrame):
     def __init__(self) -> None:
         super().__init__()
-        self.setObjectName("aboutPage")
+        self.setObjectName("manualPage")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(28, 28, 28, 28)
         layout.setSpacing(16)
 
-        layout.addWidget(TitleLabel("Manual y tecnologia"))
-        layout.addWidget(SubtitleLabel("Resumen de la practica"))
+        layout.addWidget(TitleLabel("Como crear un proyecto con PyQt5 y QFluentWidgets"))
+
+        self.markdown_view = QTextBrowser(self)
+        self.markdown_view.setOpenExternalLinks(True)
+        self.markdown_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.markdown_view.setMinimumWidth(720)
+        self.markdown_view.setStyleSheet("background: transparent; border: none;")
+
+        markdown_path = Path(__file__).resolve().parents[1] / "docs" / "manual_crear_proyecto.md"
+        try:
+            markdown_text = markdown_path.read_text(encoding="utf-8")
+            self.markdown_view.setMarkdown(markdown_text)
+        except Exception:
+            self.markdown_view.setPlainText("No se pudo cargar el manual desde docs/manual_crear_proyecto.md.")
+
+        layout.addWidget(self.markdown_view, 1)
+
+
+class SummaryPage(QFrame):
+    def __init__(self) -> None:
+        super().__init__()
+        self.setObjectName("summaryPage")
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(28, 28, 28, 28)
+        layout.setSpacing(16)
+
+        layout.addWidget(TitleLabel("Resumen de la práctica"))
+        layout.addWidget(SubtitleLabel("Información y recursos"))
 
         card = CardWidget()
         card_layout = QVBoxLayout(card)
         card_layout.setContentsMargins(18, 18, 18, 18)
         card_layout.setSpacing(10)
-        card_layout.addWidget(BodyLabel("Esta aplicacion usa PyQt5 como binding de Qt."))
+        card_layout.addWidget(BodyLabel("Esta aplicación usa PyQt5 como binding de Qt."))
         card_layout.addWidget(BodyLabel("QFluentWidgets aporta componentes modernos de estilo Fluent Design."))
         card_layout.addWidget(BodyLabel("SQLite guarda los datos en un fichero local sin servidor."))
-        card_layout.addWidget(BodyLabel("El manual completo esta en docs/manual_qfluentwidgets.md."))
+        card_layout.addWidget(BodyLabel("Manuales disponibles en la carpeta docs:"))
+        card_layout.addWidget(BodyLabel("• docs/manual_crear_proyecto.md"))
+        card_layout.addWidget(BodyLabel("• docs/manual_python_librerias_PyQt_PySide.md"))
+        card_layout.addWidget(BodyLabel("• docs/manual_qfluentwidgets.md"))
 
         layout.addWidget(card)
         layout.addStretch()
@@ -355,11 +386,13 @@ class MainWindow(FluentWindow):
         repository = StudentRepository(database_path)
 
         self.students_page = StudentsPage(repository)
-        self.about_page = AboutPage()
+        self.manual_page = ManualPage()
+        self.summary_page = SummaryPage()
         self.settings_page = SettingsPage(initial_theme)
 
         self.addSubInterface(self.students_page, FIF.PEOPLE, "Alumnos")
-        self.addSubInterface(self.about_page, FIF.DOCUMENT, "Manual")
+        self.addSubInterface(self.manual_page, FIF.DOCUMENT, "Manual")
+        self.addSubInterface(self.summary_page, FIF.DOCUMENT, "Resumen")
         self.addSubInterface(
             self.settings_page,
             FIF.SETTING,
